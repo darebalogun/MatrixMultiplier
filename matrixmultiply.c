@@ -41,26 +41,31 @@ int main(){
 	struct matrix M;
 	M.columns = 4;
 	M.rows = 4;
-	int mdata[][4] = {
-				{1, 2, 3, 4},
-				{5, 6, 7, 8},
-				{4, 3, 2, 1},
-				{8, 7, 6, 5}
+	int mdata[16] = {
+				1, 2, 3, 4,
+				5, 6, 7, 8,
+				4, 3, 2, 1,
+				8, 7, 6, 5
 			 };
-	M.data = (int *) mdata;
+
+	for (int i = 0; i < 16; i++){
+		M.data[i] = mdata[i];
+	}
 
 	struct matrix N;
 	N.columns = 4;
 	N.rows = 4;
-	int ndata[][4] = {
-				{1, 3, 5, 7},
-				{2, 4, 6, 8},
-				{7, 3, 5, 7},
-				{8, 6, 4, 2}
+	int ndata[16] = {
+				1, 3, 5, 7,
+				2, 4, 6, 8,
+				7, 3, 5, 7,
+				8, 6, 4, 2
 			 };
-	N.data = (int *) ndata;
+	for (int i = 0; i < 16; i++){
+		N.data[i] = ndata[i];
+	}
 
-	pid_t pid, wpid;
+	pid_t pid;
 
 	pid = fork();
 
@@ -161,7 +166,10 @@ int main(){
 	}
 	result->rows = M.rows;
 	result->columns = N.columns;
-	result->data = row1;
+
+	for (int i = 0; i < N.columns; i++){
+		(result->data)[i] = row1[i];
+	}
 
 	int i = 0;
 	while(i < 1000000000){
