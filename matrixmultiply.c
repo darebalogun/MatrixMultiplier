@@ -65,123 +65,129 @@ int main(){
 		N.data[i] = ndata[i];
 	}
 
-	pid_t pid;
+	
 
-	pid = fork();
+	pid_t pid[2];
+
+	int tmp;
+
+	pid[0] = fork();
+	pid[1] = fork();
 
 	//result->done = 0;
 
-	switch(pid){
-		case -1:
-			perror("fork failed");
-			exit(EXIT_FAILURE);
-		case 0:
-			pid = fork();
-			switch (pid){
-				case -1:
-					perror("fork failed");
-					exit(EXIT_FAILURE);
-				case 0:
-					// P3 Calculates row 3 of the resulting matrix
-                    printf("P3: %i\n", getppid());
+	if (pid[0] > 0 && pid[1] > 0){
 
-					int row3[4];
-					for (int i = 0; i < N.rows; i++){
-						int sum = 0;
-						for (int j = 0; j < M.columns; j++){
-							sum = sum + (M.data[8 + j] * N.data[(j * N.columns) + i]);
-						}
-						row3[i] = sum;
-					}
+		// P1 calculates the first row of the result matrix
+		printf("P1: %i\n", getpid());
 
-					for (int i = 0; i < N.columns; i++){
-						(result->data)[i + 8] = row3[i];
-					}
-					
-                    exit(EXIT_SUCCESS);
-				default:;
+		int status;
+
+		int row1[N.rows];
+		for (int i = 0; i < N.rows; i++){
+			int sum = 0;
+			for (int j = 0; j < M.columns; j++){
+				sum = sum + (M.data[j] * N.data[(j * N.columns) + i]);
 			}
-			// P2 Calculates the second row of the resulting matrix
-            printf("P2: %i\n", getppid());
-
-			int row2[N.columns];
-			for (int i = 0; i < N.rows; i++){
-				int sum = 0;
-				for (int j = 0; j < M.columns; j++){
-					sum = sum + (M.data[4 + j] * N.data[(j * N.columns) + i]);
-				}
-				row2[i] = sum;
-			}
-
-			result->rows = M.rows;
-			result->columns = N.columns;
-			for (int i = 0; i < N.columns; i++){
-				(result->data)[i + 4] = row2[i];
-			}
-
-            exit(EXIT_SUCCESS);
-
-	}
-
-	pid = fork();
-
-	switch(pid){
-		case -1:
-			perror("fork failed");
-			exit(EXIT_FAILURE);
-		case 0:
-			// P4 Calculates the 4th row of the result matrix
-            printf("P4: %i\n", getppid());
-
-			int row4[4];
-
-			for (int i = 0; i < N.rows; i++){
-				int sum = 0;
-				for (int j = 0; j < M.columns; j++){
-					sum = sum + (M.data[12 + j] * N.data[(j * N.columns) + i]);
-				}
-				row4[i] = sum;
-			}
-
-			for (int i = 0; i < N.columns; i++){
-				(result->data)[i + 12] = row4[i];
-			}
-
-            exit(EXIT_SUCCESS);
-        default:;
-	}
-
-	// P1 calculates the first row of the result matrix
-    printf("P1: %i\n", getppid());
-
-	int status;
-
-	int row1[N.rows];
-	for (int i = 0; i < N.rows; i++){
-		int sum = 0;
-		for (int j = 0; j < M.columns; j++){
-			sum = sum + (M.data[j] * N.data[(j * N.columns) + i]);
+			row1[i] = sum;
 		}
-		row1[i] = sum;
-	}
-	result->rows = M.rows;
-	result->columns = N.columns;
+		result->rows = M.rows;
+		result->columns = N.columns;
 
-	for (int i = 0; i < N.columns; i++){
-		(result->data)[i] = row1[i];
+		for (int i = 0; i < N.columns; i++){
+			(result->data)[i] = row1[i];
+		}
+	
+	//exit(EXIT_SUCCESS);
+
+	} else if(pid[0] > 0 && pid[1] == 0){
+
+		// P2 Calculates the second row of the resulting matrix
+		printf("P2: %i\n", getpid());
+
+		int row2[N.columns];
+		for (int i = 0; i < N.rows; i++){
+			int sum = 0;
+			for (int j = 0; j < M.columns; j++){
+				sum = sum + (M.data[4 + j] * N.data[(j * N.columns) + i]);
+			}
+			row2[i] = sum;
+		}
+
+		result->rows = M.rows;
+		result->columns = N.columns;
+		for (int i = 0; i < N.columns; i++){
+			(result->data)[i + 4] = row2[i];
+		}
+
+		exit(EXIT_SUCCESS);
+
+	} else if (pid[0] == 0 && pid[1] > 0){
+
+		// P3 Calculates row 3 of the resulting matrix
+		printf("P3: %i\n", getpid());
+
+		int row3[4];
+		for (int i = 0; i < N.rows; i++){
+			int sum = 0;
+			for (int j = 0; j < M.columns; j++){
+				sum = sum + (M.data[8 + j] * N.data[(j * N.columns) + i]);
+			}
+			row3[i] = sum;
+		}
+
+		for (int i = 0; i < N.columns; i++){
+			(result->data)[i + 8] = row3[i];
+		}
+		
+		exit(EXIT_SUCCESS);	
+
+	} else if (pid[0] == 0 && pid[1] == 0){
+
+		// P4 Calculates the 4th row of the result matrix
+		printf("P4: %i\n", getpid());
+
+		int row4[4];
+
+		for (int i = 0; i < N.rows; i++){
+			int sum = 0;
+			for (int j = 0; j < M.columns; j++){
+				sum = sum + (M.data[12 + j] * N.data[(j * N.columns) + i]);
+			}
+			row4[i] = sum;
+		}
+
+		for (int i = 0; i < N.columns; i++){
+			(result->data)[i + 12] = row4[i];
+		}
+
+		exit(EXIT_SUCCESS);
+
+	} else {
+		perror("fork failed");
+		exit(EXIT_FAILURE);
 	}
 
-	int i = 0;
-	while(i < 1000000000){
-		i++;
-	}
+	wait(&tmp);
 
-	printf("P1: \n");
+	printf("Result: \n");
 	for (int i = 1; i <= 16; i++){
 		printf("%i ", result->data[i-1]);
 		if (i%4 == 0)
 			printf("\n");
 	}
-	
+
+	if (shmdt(shared_memory) == -1) {
+		fprintf(stderr, "shmdt failed\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (shmctl(shmid, IPC_RMID, 0) == -1){
+		fprintf(stderr, "shmctl(IPC_RMID) failed\n");
+		exit(EXIT_FAILURE);
+	}
+
 	exit(EXIT_SUCCESS);
+
+
 }
