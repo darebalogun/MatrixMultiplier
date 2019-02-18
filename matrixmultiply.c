@@ -8,8 +8,10 @@
 #include <signal.h>
 #include "matrix.h"
 
+void printMatrix(int Matrix[16]);
+
 int main(){
- //
+ 
 	void *shared_memory = (void *)0;
 
 	// Result matrix data structure
@@ -65,23 +67,34 @@ int main(){
 		N.data[i] = ndata[i];
 	}
 
-	
+	// Print input matrices
+	printf("Starting Matrix Multiplier using 4 processes...\n");
 
-	pid_t pid[2];
+	printf("\nMatrix M:\n");
+	printMatrix(M.data);
+	printf("\n");
+	printf("Matrix N:\n");
+	printMatrix(N.data);
 
+	pid_t pid[4], wpid;
+
+	// Variable used by parent process to wait until child process dies
 	int tmp;
 
-	pid[0] = fork();
-	pid[1] = fork();
+	// Create 4 child processes
+	for (int i = 0; i < 4; i++){
+		pid[i] = fork();
+		if (pid[i] == 0){
+			break;
+		}
+	}
 
-	//result->done = 0;
 
-	if (pid[0] > 0 && pid[1] > 0){
+	if ( pid[0] == 0 ){
 
 		// P1 calculates the first row of the result matrix
-		printf("P1: %i\n", getpid());
 
-		int status;
+		printf("\nChild Process %i: working with row 1\n", getpid());
 
 		int row1[N.rows];
 		for (int i = 0; i < N.rows; i++){
@@ -91,19 +104,23 @@ int main(){
 			}
 			row1[i] = sum;
 		}
+
+		// Stores the number of rows and columns of result matrix
 		result->rows = M.rows;
 		result->columns = N.columns;
 
+		// Store the result of row 1
 		for (int i = 0; i < N.columns; i++){
 			(result->data)[i] = row1[i];
 		}
 	
-	//exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 
-	} else if(pid[0] > 0 && pid[1] == 0){
+	} else if(pid[1] == 0){
 
 		// P2 Calculates the second row of the resulting matrix
-		printf("P2: %i\n", getpid());
+
+		printf("\nChild Process %i: working with row 2\n", getpid());
 
 		int row2[N.columns];
 		for (int i = 0; i < N.rows; i++){
@@ -114,18 +131,18 @@ int main(){
 			row2[i] = sum;
 		}
 
-		result->rows = M.rows;
-		result->columns = N.columns;
+		// Store the result of row 2
 		for (int i = 0; i < N.columns; i++){
 			(result->data)[i + 4] = row2[i];
 		}
 
 		exit(EXIT_SUCCESS);
 
-	} else if (pid[0] == 0 && pid[1] > 0){
+	} else if (pid[2] == 0){
 
 		// P3 Calculates row 3 of the resulting matrix
-		printf("P3: %i\n", getpid());
+
+		printf("\nChild Process %i: working with row 3\n", getpid());
 
 		int row3[4];
 		for (int i = 0; i < N.rows; i++){
@@ -136,16 +153,18 @@ int main(){
 			row3[i] = sum;
 		}
 
+		// Store the result of row 3
 		for (int i = 0; i < N.columns; i++){
 			(result->data)[i + 8] = row3[i];
 		}
 		
 		exit(EXIT_SUCCESS);	
 
-	} else if (pid[0] == 0 && pid[1] == 0){
+	} else if (pid[3] == 0){
 
 		// P4 Calculates the 4th row of the result matrix
-		printf("P4: %i\n", getpid());
+
+		printf("\nChild Process %i: working with row 4\n", getpid());
 
 		int row4[4];
 
@@ -157,26 +176,23 @@ int main(){
 			row4[i] = sum;
 		}
 
+		// Store the result of row 4
 		for (int i = 0; i < N.columns; i++){
 			(result->data)[i + 12] = row4[i];
 		}
 
 		exit(EXIT_SUCCESS);
 
-	} else {
-		perror("fork failed");
-		exit(EXIT_FAILURE);
-	}
+	} 
 
-	wait(&tmp);
+	//  Parent process waits for all children to die
+	while ((wpid = wait(&tmp)) > 0);
+	
+	// Print result matrix
+	printf("\nResult: \n");
+	printMatrix(result->data);
 
-	printf("Result: \n");
-	for (int i = 1; i <= 16; i++){
-		printf("%i ", result->data[i-1]);
-		if (i%4 == 0)
-			printf("\n");
-	}
-
+	// Delete shared memory and exit
 	if (shmdt(shared_memory) == -1) {
 		fprintf(stderr, "shmdt failed\n");
 		exit(EXIT_FAILURE);
@@ -189,5 +205,12 @@ int main(){
 
 	exit(EXIT_SUCCESS);
 
+}
 
+void printMatrix(int matrix[16]){
+	for (int i = 1; i <= 16; i++){
+		printf("%3i ", matrix[i-1]);
+		if (i%4 == 0)
+			printf("\n");
+	}
 }
