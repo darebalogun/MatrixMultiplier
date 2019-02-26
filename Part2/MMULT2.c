@@ -6,7 +6,11 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <time.h>
+#include <sys/time.h>
 #include "matrix.h"
+
+#define MICRO_SEC_IN_SEC 1000000
 
 // Global variables input matrices M and N
 struct matrix N,M;
@@ -102,6 +106,11 @@ int main(int argc, char *argv[]){
 	// Variable used by parent process to wait until child process dies
 	int tmp;
 
+	struct timeval start, end;
+
+	// Get start time
+	gettimeofday(&start, NULL);
+
 	// Create child processes
 	for (int i = 0; i < n; i++){
 		pid[i] = fork();
@@ -154,10 +163,17 @@ int main(int argc, char *argv[]){
 
 	//  Parent process waits for all children to die
 	while ((wpid = wait(&tmp)) > 0);
+
+	// End time
+	gettimeofday(&end, NULL);
 	
 	// Print result matrix
 	printf("\nResult matrix Q: \n");
 	printMatrix(result->data);
+
+	// Time taken
+	printf("\nCompleted with %i child process(es), taking %ld microsec\n\n", n, ((end.tv_sec * MICRO_SEC_IN_SEC + end.tv_usec) - 
+																		(start.tv_sec * MICRO_SEC_IN_SEC + start.tv_usec)));
 
 	// Delete shared memory and exit
 	if (shmdt(shared_memory) == -1) {

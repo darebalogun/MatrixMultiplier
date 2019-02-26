@@ -189,8 +189,10 @@ int main(){
 	while ((wpid = wait(&tmp)) > 0);
 	
 	// Print result matrix
-	printf("\nResult: \n");
+	printf("\nResult matrix Q: \n");
 	printMatrix(result->data);
+
+	printf("\n");
 
 	// Delete shared memory and exit
 	if (shmdt(shared_memory) == -1) {
