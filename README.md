@@ -1,2 +1,2 @@
 # MatrixMultiplier
-Perform matrix multiplication using multiple processes
+Perform matrix multiplication concurrently using multiple processes
