@@ -68,7 +68,7 @@ int main(){
 	}
 
 	// Print input matrices
-	printf("Starting Matrix Multiplier using 4 processes...\n");
+	printf("\nParent Process: %i To perform matrix multiplication using 4 processes...\n", getpid());
 
 	printf("\nMatrix M:\n");
 	printMatrix(M.data);
