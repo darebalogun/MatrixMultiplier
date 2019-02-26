@@ -67,9 +67,9 @@ int main(){
 		N.data[i] = ndata[i];
 	}
 
-	// Print input matrices
 	printf("\nParent Process: %i To perform matrix multiplication using 4 processes...\n", getpid());
 
+	// Print input matrices
 	printf("\nMatrix M:\n");
 	printMatrix(M.data);
 	printf("\n");
@@ -207,6 +207,7 @@ int main(){
 
 }
 
+// Helper function to print matrices to console
 void printMatrix(int matrix[16]){
 	for (int i = 1; i <= 16; i++){
 		printf("%3i ", matrix[i-1]);

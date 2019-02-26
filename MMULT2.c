@@ -8,8 +8,10 @@
 #include <signal.h>
 #include "matrix.h"
 
+// Global variables input matrices M and N
 struct matrix N,M;
 
+// Global variable shared memory pointer
 struct matrix *result;
 
 void printMatrix(int Matrix[16]);
@@ -18,15 +20,13 @@ void calculateRow(int x);
 
 int main(int argc, char *argv[]){
 
+	// Error detection, user must provide a single argument of 1, 2 or 4
 	if (argc != 2 | !(strcmp(argv[1], "1") == 0 | strcmp(argv[1], "2") == 0 | strcmp(argv[1], "4") == 0) ){
 		printf("Error! Please provide a single argument (1, 2 or 4) to indicate the number of child processes to use\n");
 		exit(EXIT_FAILURE);
 	}
 
 	void *shared_memory = (void *)0;
-
-	// Result matrix data structure
-	//struct matrix *result;
 
 	// Shared memory ID
 	int shmid;
@@ -48,6 +48,7 @@ int main(int argc, char *argv[]){
 		exit(EXIT_FAILURE);
 	}
 
+	// Assign shared memory to global variable pointer
 	result = (struct matrix *)shared_memory;
 
 	// Define M and N
@@ -78,6 +79,7 @@ int main(int argc, char *argv[]){
 		N.data[i] = ndata[i];
 	}
 
+	// Print matrices M and N
 	printf("\nMatrix M:\n");
 	printMatrix(M.data);
 	printf("\n");
@@ -93,7 +95,6 @@ int main(int argc, char *argv[]){
 		n = 4;
 	}
 
-		// Print input matrices
 	printf("\nParent Process %i: To perform matrix multiplication using %i processes...\n", getpid(), n);
 
 	pid_t pid[n], wpid;
@@ -101,9 +102,7 @@ int main(int argc, char *argv[]){
 	// Variable used by parent process to wait until child process dies
 	int tmp;
 
-	// Create 4 child processes
-
-
+	// Create child processes
 	for (int i = 0; i < n; i++){
 		pid[i] = fork();
 		if (pid[i] == 0){
@@ -116,7 +115,7 @@ int main(int argc, char *argv[]){
 	result->columns = N.columns;
 
 	switch (n){
-		case 1:
+		case 1: // One child process performs all calculations
 			if (pid[0] == 0){
 				calculateRow(1);
 				calculateRow(2);
@@ -125,7 +124,7 @@ int main(int argc, char *argv[]){
 				exit(EXIT_SUCCESS);
 			}
 			break;
-		case 2:
+		case 2: // 2 child processes, perform calculations for 2 rows each
 			if (pid[0] == 0){
 				calculateRow(1);
 				calculateRow(2);
@@ -136,7 +135,7 @@ int main(int argc, char *argv[]){
 				exit(EXIT_SUCCESS);
 			}
 			break;
-		case 4:
+		case 4: // 4 child processes, each process performs one row's calculation
 			if (pid[0] == 0){
 				calculateRow(1);
 				exit(EXIT_SUCCESS);
@@ -175,6 +174,7 @@ int main(int argc, char *argv[]){
 
 }
 
+// Helper function to print matrices 
 void printMatrix(int matrix[16]){
 	for (int i = 1; i <= 16; i++){
 		printf("%3i ", matrix[i-1]);
@@ -183,6 +183,7 @@ void printMatrix(int matrix[16]){
 	}
 }
 
+// Calculation function, accepts row number and performs calculation
 void calculateRow(int x){
 	if (x >= 1 | x <= 4){
 		printf("\nChild Process %i: working with row %i\n", getpid(), x);
